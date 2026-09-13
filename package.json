@@ -1,0 +1,19 @@
+{
+  "name": "discord-community-bot",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "description": "Discord bot with tickets, verification, news and vouches",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node --check src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "discord.js": "14.27.0",
+    "dotenv": "16.6.1"
+  }
+}
