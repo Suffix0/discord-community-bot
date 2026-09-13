@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const http = require("node:http");
+const path = require("node:path");
 
 const {
   ActionRowBuilder,
@@ -116,8 +117,11 @@ const commands = [
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+  
+
 });
 
+const ticketBannerPath = path.join(__dirname, "..", "assets", "ticket-banner.png");
 const port = Number(process.env.PORT || 3000);
 const healthServer = http.createServer((request, response) => {
   response.writeHead(request.url === "/health" ? 200 : 200, { "Content-Type": "text/plain; charset=utf-8" });
@@ -230,10 +234,12 @@ client.on("interactionCreate", async (interaction) => {
               .setColor(0x5865f2)
               .setTitle("Support-Ticket")
               .setDescription("Beschreibe bitte dein Anliegen. Das Support-Team meldet sich so schnell wie möglich.")
+            .setImage("attachment://ticket-banner.png")
               .setFooter({ text: config.brand })
               .setTimestamp(),
           ],
           components: [closeRow],
+          files: [{ attachment: ticketBannerPath, name: "ticket-banner.png" }],
         });
         return interaction.editReply(`Dein Ticket wurde erstellt: ${channel}`);
       }
@@ -265,9 +271,12 @@ client.on("interactionCreate", async (interaction) => {
             .setColor(0x5865f2)
             .setTitle("Support")
             .setDescription("Du brauchst Hilfe? Klicke auf den Button und erstelle ein privates Ticket.")
+          .setImage("attachment://ticket-banner.png")
+        
             .setFooter({ text: config.brand }),
         ],
         components: [row],
+        files: [{ attachment: ticketBannerPath, name: "ticket-banner.png" }],
       });
       return interaction.reply({ content: "Ticket-Panel wurde gepostet.", ephemeral: true });
     }
@@ -300,12 +309,14 @@ client.on("interactionCreate", async (interaction) => {
         return interaction.reply({ content: "Der Bild-Link muss mit http:// oder https:// beginnen.", ephemeral: true });
       }
       const embed = new EmbedBuilder()
-        .setColor(0xfee75c)
+                                .setColor(0xed4245)
         .setTitle(interaction.options.getString("titel"))
-        .setDescription(interaction.options.getString("text"))
-        .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
-        .setFooter({ text: config.brand })
-        .setTimestamp();
+        .setDescription(`• ${interaction.options.getString("text")}`);
+        
+
+        
+        
+        
       if (image) embed.setImage(image);
       await channel.send({
         content: interaction.options.getString("ping") || undefined,
@@ -319,6 +330,12 @@ client.on("interactionCreate", async (interaction) => {
       const target = interaction.options.getUser("user");
       const rating = interaction.options.getInteger("sterne");
       const proof = interaction.options.getString("bild_link");
+            if (target.id === interaction.user.id) {
+        return interaction.reply({
+          content: "Du kannst dir nicht selbst einen Vouch geben.",
+          ephemeral: true,
+        });
+            }
       if (!isHttpUrl(proof)) {
         return interaction.reply({ content: "Der Bild-Link muss mit http:// oder https:// beginnen.", ephemeral: true });
       }
@@ -332,7 +349,7 @@ client.on("interactionCreate", async (interaction) => {
         .setDescription(interaction.options.getString("text"))
         .addFields(
           { name: "Bewerteter Nutzer", value: `${target} (${target.id})` },
-          { name: "Bewertung von", value: `${interaction.user} (${interaction.user.id})` },
+
         )
         .setThumbnail(target.displayAvatarURL())
         .setFooter({ text: config.brand })
